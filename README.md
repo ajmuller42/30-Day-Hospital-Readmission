@@ -5,6 +5,8 @@ Question: which diabetic inpatient encounters will be readmitted within 30 days,
 
 Data: Diabetes 130-US Hospitals 1999–2008 (UCI, CC BY 4.0): about 101,800 encounters, about 50 features (demographics, diagnoses, labs, medications). Readmitted < 30 days is about 11%.
 
+There is a Variables Table on the dataset website. It is valuable to read the info for the features. Important information there that we will need to take action on. 
+
 Dataset Information
 What do the instances in this dataset represent?
 The instances represent hospitalized patient records diagnosed with diabetes.
@@ -27,3 +29,4 @@ The data contains such attributes as patient number, race, gender, age, admissio
 
 Has Missing Values?
 Yes 
+
