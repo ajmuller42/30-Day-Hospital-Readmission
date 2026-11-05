@@ -1,0 +1,21 @@
+Note: Everyone needs to make sure they run those 2 commands commented out in pipeline.py 
+       Also read the Variables Table one the dataset website and the README
+
+
+Outline for what we need to do:
+1. Clean data within context. 
+    a. DONE Drop patients who cannot be readmitted (dead, hospice, etc.) 
+    b. We're ranking patients, so we need to "use grouped splits by patient" when cross validating (per Claude)
+    c. Check missing percentages, handle them
+    d. DONE Handle target column. We're only interested in labelling positive as "Readmission wihtin 30 days", not readmission without time constraint.  
+
+2. Feature Engineering
+    a. Collapse ICD-9 codes into groups based on clinical groups
+    b. claude recommends simplifying all the prior visits info into one feature. I'm not convinced. 
+
+3. Build model
+    Should probably use a model that ranks the patients, to answer the "top 20% most likely to readmit" part of the question. 
+    This would 
+
+Where I'm at:
+    Working on the missing percentages. Context is very important for this, so we need to make sure to drop and group things correctly. 
