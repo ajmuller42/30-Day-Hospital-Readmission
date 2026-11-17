@@ -21,24 +21,39 @@ import time
 #print(diabetes_130_us_hospitals_for_years_1999_2008.variables) 
 
 
-df = pd.read_csv('diabetic_data.csv', keep_default_na=False, na_values='?')
+df = pd.read_csv('diabetic_data.csv', keep_default_na=False, na_values='?', low_memory=False)
 
-# ----- Data Cleaning ----- #
-
-# drop if discharged bc of hospice or death. Those cannot be readmitted ever. Do not learn off this data
+# --- Row filters (all of them, first) ---
 df = df[~df['discharge_disposition_id'].isin([11, 13, 14, 19, 20, 21])]
+df = df[df['gender'] != 'Unknown/Invalid']
 
-# set positive targe to be only readmissions within 30 days
+# --- Target and groups, built after filtering so they stay aligned ---
 y = (df['readmitted'] == '<30').astype(int)
+groups = df['patient_nbr']
 
-# replace '?' empty values with NaN, order columns based on missing rate, and print
-df = df.replace('?', np.nan)
-missing = (df.isna().mean() * 100).round(2).sort_values(ascending=False)
-print(missing[missing > 0])
-# checking more missing value rates. Missing number analysis not complete!!!!!!!!!!!!
-print(df['gender'].value_counts())            # a few 'Unknown/Invalid' rows
-print(df['admission_type_id'].value_counts()) # IDs 5, 6, 8 mean null/not available
-print(df['admission_source_id'].value_counts()) # IDs 9, 15, 17, 20, 21 are null/unknown
-print(df['discharge_disposition_id'].value_counts()) # 18, 25, 26 are unknown
-print(df['A1Cresult'].value_counts(dropna=False))
-print(df['max_glu_serum'].value_counts(dropna=False))
+# --- Drop columns that shouldn't be features ---
+df = df.drop(columns=['weight', 'encounter_id', 'patient_nbr', 'readmitted'])
+constant_cols = [c for c in df.columns if df[c].nunique() == 1]
+print('Constant columns dropped:', constant_cols)   # expect examide, citoglipton
+df = df.drop(columns=constant_cols)
+
+# --- Recode "not tested" ---
+for col in ['A1Cresult', 'max_glu_serum']:
+    df[col] = df[col].replace('None', 'Not Tested')
+
+# --- Coded-unknown IDs, treated as categories ---
+unknown_map = {
+    'admission_type_id': [5, 6, 8],
+    'admission_source_id': [9, 17, 20],
+    'discharge_disposition_id': [18, 25],
+}
+for col, codes in unknown_map.items():
+    df[col] = df[col].replace(codes, -1).astype(str)
+
+# --- Truly missing categoricals ---
+for col in ['race', 'payer_code', 'medical_specialty', 'diag_1', 'diag_2', 'diag_3']:
+    df[col] = df[col].fillna('Unknown').astype(str)
+
+# --- Sanity checks ---
+assert len(df) == len(y) == len(groups)
+print(df.isna().sum().sum(), 'NaNs remaining')   # should be 0
